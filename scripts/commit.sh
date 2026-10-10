@@ -13,6 +13,11 @@
 #                     empty for every other event
 set -euo pipefail
 
+fail() {
+  echo "::error::$1" >&2
+  exit 1
+}
+
 branch="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
 
 # For a pull request the checkout is a detached merge of the branch into its base; the diagram
@@ -22,7 +27,8 @@ if [ "$(git rev-parse --abbrev-ref HEAD)" != "$branch" ]; then
   trap 'rm -f "$diagram"' EXIT
   cp "$OUTPUT_PATH" "$diagram"
   git checkout -q -- "$OUTPUT_PATH" 2>/dev/null || rm -f "$OUTPUT_PATH"
-  git fetch -q --depth=1 origin "$branch"
+  git fetch -q --depth=1 origin "$branch" 2>/dev/null \
+    || fail "Branch '$branch' is gone: the pull request was probably merged or closed before the diagram was ready."
   git checkout -q -B "$branch" FETCH_HEAD
   mkdir -p "$(dirname "$OUTPUT_PATH")"
   cp "$diagram" "$OUTPUT_PATH"
