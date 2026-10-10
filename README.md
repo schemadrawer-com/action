@@ -99,6 +99,12 @@ again for the diagram commit. Where branch protection requires those checks, pas
 access token with `contents: write` as `github-token`: the commit then triggers the workflows,
 this one included, which finds the diagram up to date and commits nothing.
 
+The commit is made by `github-actions[bot]`. Until the bot has a merged commit in the repository,
+GitHub holds the workflow run for its commit "awaiting approval from a maintainer", as it does
+for any first-time contributor. Merge the first pull request with a diagram and that is over, or
+set "Approval for running fork pull request workflows from contributors" in the repository's or
+organisation's Actions settings to "first-time contributors who are new to GitHub".
+
 A pull request from a fork gets no commit: GitHub gives its workflow a read-only token.
 
 ## Trying it by hand
