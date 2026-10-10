@@ -76,7 +76,7 @@ that leaves the diagram as it is gets nothing.
 | `user-id`           | no       | derived from the repository name    | UUID identifying this repository at schemadrawer.com.                       |
 | `timeout-seconds`   | no       | `300`                               | Max time to wait for the diagram (5 minutes).                               |
 | `commit-message`    | no       | `chore: update schema diagram`     | Commit message for the diagram.                                               |
-| `github-token`      | no       | the workflow's `GITHUB_TOKEN`       | Token used to push the commit; see below for when to pass a personal access token. |
+| `github-token`      | no       | the workflow's `GITHUB_TOKEN`       | Token used to push the commit; see *Whose commit it is* for why to pass your own. |
 
 ## Outputs
 
@@ -91,19 +91,25 @@ that leaves the diagram as it is gets nothing.
 - `permissions: contents: write` lets the action push the commit; `id-token: write` lets it ask
   GitHub for the token that vouches for the run.
 
-## The commit and the pull request's checks
+## Whose commit it is
 
-A commit pushed with the workflow's own `GITHUB_TOKEN` does not trigger workflows, by GitHub's
-design. That rules out an endless loop, but it also means the pull request's checks do not run
-again for the diagram commit. Where branch protection requires those checks, pass a personal
-access token with `contents: write` as `github-token`: the commit then triggers the workflows,
-this one included, which finds the diagram up to date and commits nothing.
+By default the commit is pushed with the workflow's own `GITHUB_TOKEN`, so it is made by
+`github-actions[bot]`. Since June 2026 GitHub holds every workflow run that such a push to a pull
+request triggers "awaiting approval from a maintainer", whatever the repository's approval settings
+say - so the pull request's checks do not run for the diagram commit until someone approves them.
+That is fine where no check is required to merge; it is a nuisance everywhere else.
 
-The commit is made by `github-actions[bot]`. Until the bot has a merged commit in the repository,
-GitHub holds the workflow run for its commit "awaiting approval from a maintainer", as it does
-for any first-time contributor. Merge the first pull request with a diagram and that is over, or
-set "Approval for running fork pull request workflows from contributors" in the repository's or
-organisation's Actions settings to "first-time contributors who are new to GitHub".
+To have the commit made in your name instead, pass a token of your own as `github-token`: a
+fine-grained personal access token with `Contents: read and write` on the repository, kept as a
+secret. The commit then triggers the workflows like any push of yours, this one included, which
+finds the diagram up to date and commits nothing.
+
+```yaml
+      - uses: schemadrawer-com/action@v1
+        with:
+          # ...
+          github-token: ${{ secrets.SCHEMADRAWER_TOKEN }}
+```
 
 A pull request from a fork gets no commit: GitHub gives its workflow a read-only token.
 

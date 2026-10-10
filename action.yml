@@ -35,9 +35,9 @@ inputs:
     required: false
     default: 'chore: update schema diagram'
   github-token:
-    description: 'Token used to push the commit (needs `contents: write`). The workflow token by default; a personal access token if the commit should trigger workflows, e.g. required checks.'
+    description: 'Token used to push the commit (needs `contents: write`). The workflow token when empty; a personal access token makes the commit yours, so that the pull request''s checks run for it without approval.'
     required: false
-    default: ${{ github.token }}
+    default: ''
 
 outputs:
   commit-sha:
@@ -66,7 +66,7 @@ runs:
     - id: commit
       shell: bash
       env:
-        GH_TOKEN: ${{ inputs.github-token }}
+        GH_TOKEN: ${{ inputs.github-token || github.token }}
         OUTPUT_PATH: ${{ inputs.output-path }}
         COMMIT_MESSAGE: ${{ inputs.commit-message }}
       run: 'bash ${{ github.action_path }}/scripts/commit.sh'
